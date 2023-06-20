@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Detail</title>
+</head>
+<body>
+    <h1>User Detail</h1>
+    <h2>{{ user.user_name }}</h2>
+
+
+    <h3>Total Hours Worked: {{ total_hours }}</h3>
+
+    <button onclick="location.href='{% url 'punch_in' user.id %}'">Punch In</button>
+    <button onclick="location.href='{% url 'punch_out' user.id %}'">Punch Out</button>
+</body>
+</html>
