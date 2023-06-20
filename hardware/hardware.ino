@@ -57,13 +57,14 @@ void wifiStartup(){
     Serial.print("Connecting to ");
     Serial.println(ssid);
 
+	lcd.clear();
+	lcd.setCursor(6, 0);
+	lcd.print("WiFi");
+	lcd.setCursor(2, 1);
+	lcd.print("connecting");
+	
     WiFi.begin(ssid, password);
-
     while (WiFi.status() != WL_CONNECTED) {
-		lcd.setCursor(6, 0);
-    	lcd.print("WiFi");
-		lcd.setCursor(2, 1);
-    	lcd.print("connecting");
         delay(500);
         Serial.print(".");
 	}
@@ -123,6 +124,11 @@ void notOpenDoor(bool auth){
 //MQTT
 //Reconects to MQTT Server
 void reconnect() {
+	lcd.clear();
+	lcd.setCursor(6, 0);
+	lcd.print("MQTT");
+	lcd.setCursor(2, 1);
+	lcd.print("connecting");
 	while (!mqttClient.connected()) {
 		Serial.println("Tentando reconectar ao broker MQTT...");
 		if (mqttClient.connect("ESP32Client", MQTTUSERNAME, MQTTPWD)) {		
@@ -137,11 +143,6 @@ void reconnect() {
 			Serial.print("Falha ao se reconectar ao broker MQTT com erro: ");
 			Serial.println(mqttClient.state());
 		}
-		lcd.clear();
-		lcd.setCursor(6, 0);
-    	lcd.print("MQTT");
-		lcd.setCursor(2, 1);
-    	lcd.print("connecting");
 	}
 }
 
@@ -241,6 +242,9 @@ void setup(){
 }
 
 void loop(){
+	if(WiFi.status() != WL_CONNECTED){
+		wifiStartup();
+	}
 	// Verifica se a conexão com o broker MQTT está ativa e reconecta-se, se necessário
 	if (!mqttClient.connected()) {
 		reconnect();
