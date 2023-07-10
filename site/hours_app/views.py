@@ -65,7 +65,6 @@ def delete(request, pk):
 
 def detail(request, user_id):
     user = User.objects.get(pk=user_id)
-
     # Calculate hours worked and update HoursWorked model
     punches = user.punch_set.all().order_by('punch_time')
     total_hours = 0.0

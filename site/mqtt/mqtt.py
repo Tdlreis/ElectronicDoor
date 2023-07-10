@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 from django.conf import settings
-from hours_app.models import User, Punch, HoursWorked
+from door_user.models import User, PunchCard, Rfid
 from django.utils import timezone
 import time
 import socket
@@ -21,19 +21,23 @@ def on_message(client, userdata, msg):
 
     if msg.topic == "server/auth":
         try:
-            user = User.objects.get(rfid_num=msg.payload.decode("utf-8"))
-            print(user.user_name)
-            last_punch = user.punch_set.last()
+            print(msg.payload.decode("utf-8"))
+            rfid = Rfid.objects.get(rfid_uid=msg.payload.decode("utf-8"))
+            user = rfid.user
+
+            last_punch = user.punchcard_set.last()
             
             if not user.authorization:
                 client.publish("door/notauth", " ")
-            elif not last_punch or not last_punch.is_in:
+            elif not rfid.authorization:
+                client.publish("door/notauth", " ")
+            elif not last_punch or not last_punch.out:
                 client.publish("door/enter", user.user_name)
                 punch_in(user.pk)
             else:
                 punch_out(user.pk)
                 client.publish("door/leave", user.user_name)        
-        except User.DoesNotExist:
+        except Rfid.DoesNotExist:
             print("Não encontrado")
             client.publish("door/notopen", " ")
             pass
@@ -79,33 +83,17 @@ def establish_mqtt_connection():
 def punch_in(user_id):
     user = User.objects.get(pk=user_id)
     current_time = timezone.now()
-    last_punch = user.punch_set.last()
+    last_punch = user.punchcard_set.last()
 
-    if not last_punch or not last_punch.is_in:
-        Punch.objects.create(user=user, punch_time=current_time, is_in=True)
+    if not last_punch or not last_punch.out:
+        PunchCard.objects.create(user=user, punch_in_time=current_time, out=True)
 
 def punch_out(user_id):
     user = User.objects.get(pk=user_id)
     current_time = timezone.now()
-    last_punch = user.punch_set.last()
+    last_punch = user.punchcard_set.last()
 
-    if last_punch and last_punch.is_in:
-        Punch.objects.create(user=user, punch_time=current_time, is_in=False)
-
-        # Calculate hours worked and update HoursWorked model
-        punches = user.punch_set.all().order_by('punch_time')
-        total_hours = 0.0
-        in_time = None
-        for punch in punches:
-            if punch.is_in:
-                in_time = punch.punch_time
-            else:
-                if in_time:
-                    out_time = punch.punch_time
-                    duration = out_time - in_time
-                    total_hours += duration.total_seconds() / 3600
-                    in_time = None
-
-        hours_worked, _ = HoursWorked.objects.get_or_create(user=user)
-        hours_worked.hours = total_hours
-        hours_worked.save()
+    if last_punch and last_punch.out:
+        last_punch.out = False
+        last_punch.punch_out_time = current_time
+        last_punch.save()
