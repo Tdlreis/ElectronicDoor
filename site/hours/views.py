@@ -8,6 +8,8 @@ import locale
 def is_the_user(user, id):
     try:
         door_user = User.objects.get(pk=id)
+        if user.is_staff == True:
+            return True
         if user.username != door_user.user_name:
             return False
         else:
@@ -32,19 +34,29 @@ def hours(request, id):
             time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False)
             hour = 0
             for t in time:
-                hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds() / 3600
+                hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds()
+            temp = timedelta(seconds=hour)
+            treatedHour = str(int(temp.total_seconds() / 3600)) + "h"
+            print(treatedHour)
+            print(temp.total_seconds() % 3600)
+            if temp.total_seconds() % 3600 > 60:
+                treatedHour = treatedHour + " e " + str(int((temp.total_seconds() % 3600) / 60)) + "m"
+            
+            
             values = {
                 'start': current_date,
-                'end': next_date,
-                'hours': hour.__round__(3),
+                'end': (next_date - timedelta(days=1)),
+                'hours': treatedHour,
             }
-            current_date = next_date + timedelta(days=1)
-            data.append(values)
+            current_date = next_date
+            if hour > 0:
+                data.append(values)
 
         data.reverse()
         context = {
             'data': data,
-            'user': id
+            'user': id,
+            'staff': request.user.is_staff,
         }
     except PunchCard.DoesNotExist:
         context = {
@@ -67,7 +79,7 @@ def get_data(request, cat, id):
     data = []
 
     locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
-    if cat == 3:
+    if cat == 4:
         for p in punch_cards:
             if p.reviw == True:
                 validado = "Sim",
@@ -77,6 +89,7 @@ def get_data(request, cat, id):
                 'in': p.punch_in_time.strftime('%H:%M do dia %d de %B de %Y'),
                 'out': p.punch_out_time.strftime('%H:%M do dia %d de %B de %Y'),
                 'validated': validado,
+                'hours': ((p.punch_out_time - p.punch_in_time).total_seconds() / 3600).__round__(2),
             }
             data.append(values)
         data.reverse()
@@ -88,17 +101,20 @@ def get_data(request, cat, id):
                 next_date = current_date + timedelta(days=1)
             elif cat == 2:
                 next_date = current_date + timedelta(days=365)
+            elif cat == 3:
+                next_date = current_date + timedelta(days=7)
             time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False)
             hour = 0
             for t in time:
-                hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds() / 3600
+                hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds()
             values = {
-                'start': current_date.strftime('%d de %B de %Y'),
-                'end': next_date.strftime('%d de %B de %Y'),
-                'hours': hour.__round__(3),
+                'start': current_date.strftime('%d de %B de %Y').replace(current_date.strftime('%d de %B de %Y').split()[2], current_date.strftime('%d de %B de %Y').split()[2].capitalize()),
+                'end': (next_date - timedelta(days=1)).strftime('%d de %B de %Y').replace(next_date.strftime('%d de %B de %Y').split()[2], next_date.strftime('%d de %B de %Y').split()[2].capitalize()),
+                'hours': timedelta(seconds=hour).strftime('%Hh e %Mm'),
             }
-            current_date = next_date + timedelta(days=1)
-            data.append(values)
+            current_date = next_date
+            if hour > 0:
+                data.append(values)
         data.reverse()
 
     

@@ -34,11 +34,16 @@
                 <h1 class="logo-section">Porta Eletrônica</h1>
             </div>
             <div class="col-4 pt-2 pb-2 text-right">
-                <a href="#" class="btn btn-sm btn-primary" id="btn-mes">Mês</a>
                 <a href="#" class="btn btn-sm btn-primary" id="btn-dia">Dia</a>
+                <a href="#" class="btn btn-sm btn-primary" id="btn-semana">Semana</a>
+                <a href="#" class="btn btn-sm btn-primary" id="btn-mes">Mês</a>
                 <a href="#" class="btn btn-sm btn-primary" id="btn-ano">Ano</a>
                 <a href="#" class="btn btn-sm btn-primary" id="btn-log">Log</a>
+                {% if staff %}
                 <a href="/" class="btn btn-secondary ml-2">Voltar</a>
+                {% else %}
+                <a href="{% url 'logout' %}?next={% url 'index' %}" class="btn btn-sm btn-danger">Logout</a>
+                {% endif %}
             </div>
         </div>
                 
@@ -84,7 +89,7 @@
                         table.empty();  // Clear existing table data
 
                         table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Mês</th><th scope="col">Horas</th></tr></thead>');
-                        table.append('<tbody">');
+                        table.append('<tbody>');
                         for (var i = 0; i < data.length; i++) {
                             table.append('<tr><td>' + data[i].start + ' - ' + data[i].end + '</td><td>' + data[i].hours + '</td></tr>');
                         }            
@@ -103,8 +108,8 @@
                         var table = $('#table');
                         table.empty();  // Clear existing table data
 
-                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Mês</th><th scope="col">Horas</th></tr></thead>');
-                        table.append('<tbody">');
+                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Dia</th><th scope="col">Horas</th></tr></thead>');
+                        table.append('<tbody>');
                         for (var i = 0; i < data.length; i++) {
                             table.append('<tr><td>' + data[i].start + '</td><td>' + data[i].hours + '</td></tr>');
                         }            
@@ -123,8 +128,8 @@
                         var table = $('#table');
                         table.empty();  // Clear existing table data
 
-                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Mês</th><th scope="col">Horas</th></tr></thead>');
-                        table.append('<tbody">');
+                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Ano</th><th scope="col">Horas</th></tr></thead>');
+                        table.append('<tbody>');
                         for (var i = 0; i < data.length; i++) {
                             table.append('<tr><td>' + data[i].start + ' - ' + data[i].end + '</td><td>' + data[i].hours + '</td></tr>');
                         }            
@@ -132,7 +137,7 @@
                     }
                 });
             });
-            $('#btn-log').click(function() {
+            $('#btn-semana').click(function() {
                 var user_id = "{{ user }}"
                 $.ajax({
                     url: '/get-data/3/'+user_id+'/',
@@ -143,10 +148,30 @@
                         var table = $('#table');
                         table.empty();  // Clear existing table data
 
-                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Entrada</th><th scope="col">Saida</th><th scope="col">Validado</th></tr></thead>');
-                        table.append('<tbody">');
+                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Semana</th><th scope="col">Horas</th></tr></thead>');
+                        table.append('<tbody>');
                         for (var i = 0; i < data.length; i++) {
-                            table.append('<tr><td>' + data[i].in + '</td><td>' + data[i].out + '</td><td>' + data[i].validated + '</td></tr>');
+                            table.append('<tr><td>' + data[i].start + ' - ' + data[i].end + '</td><td>' + data[i].hours + '</td></tr>');
+                        }            
+                        table.append('</tbody>');
+                    }
+                });
+            });
+            $('#btn-log').click(function() {
+                var user_id = "{{ user }}"
+                $.ajax({
+                    url: '/get-data/4/'+user_id+'/',
+                    type: 'GET',
+                    success: function(response) {
+                        var data =  response.data;
+                    
+                        var table = $('#table');
+                        table.empty();  // Clear existing table data
+
+                        table.append('<thead class="thead-dark"><tr id=header-row><th scope="col">Entrada</th><th scope="col">Saida</th><th scope="col">Horas</th><th scope="col">Validado</th></tr></thead>');
+                        table.append('<tbody>');
+                        for (var i = 0; i < data.length; i++) {
+                            table.append('<tr><td>' + data[i].in + '</td><td>' + data[i].out + '</td><td>' + data[i].hours + '</td><td>' + data[i].validated + '</td></tr>');
                         }            
                         table.append('</tbody>');
                     }
