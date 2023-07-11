@@ -44,6 +44,7 @@
                 <table class="table table-bordered table-striped" id="table">
                     <thead class="thead-dark">
                         <tr id=header-row>
+                            <th scope="col">Nome</th>
                             <th scope="col">Entrada</th>
                             <th scope="col">Saida</th>
                             <th scope="col">Horas</th>
@@ -53,6 +54,7 @@
                     <tbody id = "body-row">
                         {% for d in data %}
                         <tr id="{{ d.id }}">
+                            <td>{{ d.name }}</td>
                             <td>{{ d.in }}</td>
                             <td>{{ d.out }}</td>                          
                             <td>{{ d.hours }}</td>
@@ -92,7 +94,7 @@
                         size--;
                         if(size < 1){
                             var body = $('#body-row');
-                            body.append('<tr><td colspan="4">Todos os registros validados.</td></tr>');
+                            body.append('<tr><td colspan="5">Todos os registros validados.</td></tr>');
                         }
                     }
                 });
