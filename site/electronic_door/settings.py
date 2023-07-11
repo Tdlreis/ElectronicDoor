@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'door_user.apps.DoorUserConfig',
     'hours.apps.HoursConfig',
     'mqtt.apps.MqttConfig',
+    'validation.apps.ValidationConfig',
 ]
 
 MIDDLEWARE = [

@@ -16,6 +16,23 @@ def is_the_user(user, id):
             return True
     except User.DoesNotExist:
         return False
+    
+def format_hour(inTime):
+    time = timedelta(seconds=inTime)
+    hourString = ""
+    minuteString = ""
+    secondString = ""
+
+    if time.total_seconds() // 3600 > 0:
+        hourString = str(int(time.total_seconds() / 3600)) + "h"
+        time = time - timedelta(hours=int(time.total_seconds() / 3600))
+    if time.total_seconds() // 60 > 0:
+        minuteString = str(int(time.total_seconds() / 60)) + "m"
+        time = time - timedelta(minutes=int(time.total_seconds() / 60))
+    if time.total_seconds() > 0:
+        secondString = str(int(time.total_seconds())) + "s"
+
+    return hourString + " " + minuteString + " " + secondString
         
 @login_required
 def hours(request, id):
@@ -31,22 +48,15 @@ def hours(request, id):
 
         while current_date <= end_date:
             next_date = current_date + timedelta(days=7)
-            time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False)
+            time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False, reviw=True)
             hour = 0
             for t in time:
                 hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds()
-            temp = timedelta(seconds=hour)
-            treatedHour = str(int(temp.total_seconds() / 3600)) + "h"
-            print(treatedHour)
-            print(temp.total_seconds() % 3600)
-            if temp.total_seconds() % 3600 > 60:
-                treatedHour = treatedHour + " e " + str(int((temp.total_seconds() % 3600) / 60)) + "m"
-            
             
             values = {
                 'start': current_date,
                 'end': (next_date - timedelta(days=1)),
-                'hours': treatedHour,
+                'hours': format_hour(hour),
             }
             current_date = next_date
             if hour > 0:
@@ -61,7 +71,8 @@ def hours(request, id):
     except PunchCard.DoesNotExist:
         context = {
             'data': data,
-            'user': id
+            'user': id,
+            'staff': request.user.is_staff,
         }
         pass
 
@@ -71,7 +82,7 @@ def hours(request, id):
 def get_data(request, cat, id):
     if not is_the_user(request.user, id):
         return redirect('index')
-    punch_cards = PunchCard.objects.filter(user=id, punch_out_time__isnull=False)
+    punch_cards = PunchCard.objects.filter(user=id, punch_out_time__isnull=False).order_by('punch_in_time')
     start_date = punch_cards.earliest('punch_in_time').punch_in_time.date()
     end_date = punch_cards.latest('punch_in_time').punch_in_time.date()
        
@@ -89,7 +100,7 @@ def get_data(request, cat, id):
                 'in': p.punch_in_time.strftime('%H:%M do dia %d de %B de %Y'),
                 'out': p.punch_out_time.strftime('%H:%M do dia %d de %B de %Y'),
                 'validated': validado,
-                'hours': ((p.punch_out_time - p.punch_in_time).total_seconds() / 3600).__round__(2),
+                'hours': format_hour((p.punch_out_time - p.punch_in_time).total_seconds()),
             }
             data.append(values)
         data.reverse()
@@ -103,14 +114,15 @@ def get_data(request, cat, id):
                 next_date = current_date + timedelta(days=365)
             elif cat == 3:
                 next_date = current_date + timedelta(days=7)
-            time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False)
+            time = PunchCard.objects.filter(user=id, punch_in_time__range=[current_date, next_date], punch_out_time__isnull=False, reviw=True)
             hour = 0
             for t in time:
                 hour = hour + (t.punch_out_time - t.punch_in_time).total_seconds()
+
             values = {
                 'start': current_date.strftime('%d de %B de %Y').replace(current_date.strftime('%d de %B de %Y').split()[2], current_date.strftime('%d de %B de %Y').split()[2].capitalize()),
                 'end': (next_date - timedelta(days=1)).strftime('%d de %B de %Y').replace(next_date.strftime('%d de %B de %Y').split()[2], next_date.strftime('%d de %B de %Y').split()[2].capitalize()),
-                'hours': timedelta(seconds=hour).strftime('%Hh e %Mm'),
+                'hours': format_hour(hour),
             }
             current_date = next_date
             if hour > 0:
