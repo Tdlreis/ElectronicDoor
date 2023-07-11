@@ -128,5 +128,6 @@ def get_data(request, cat, id):
             if hour > 0:
                 data.append(values)
         data.reverse()
-    
+        print(data)
+        
     return JsonResponse({'data': data})
