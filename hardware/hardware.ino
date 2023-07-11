@@ -25,8 +25,8 @@ const char* password = "Thiago2001";
 //MQTT
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
-const char* MQTT_BROKER_IP_ADDRESS = "192.168.3.46";
-// const char* MQTT_BROKER_IP_ADDRESS = "172.190.138.174";
+// const char* MQTT_BROKER_IP_ADDRESS = "192.168.3.46";
+const char* MQTT_BROKER_IP_ADDRESS = "20.102.120.88";
 const char* MQTTUSERNAME = "esp32";
 const char* MQTTPWD = "n9tt-9g0a-b7fq-ranc";
 
