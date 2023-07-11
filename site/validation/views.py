@@ -20,7 +20,6 @@ def validation(request):
                 'hours': format_hour((n.punch_out_time - n.punch_in_time).total_seconds()),
                 'id': n.pk,
             }
-            print(values)
             data.append(values)
         context = {
             'data': data,
