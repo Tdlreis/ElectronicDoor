@@ -6,6 +6,14 @@ import time
 import socket
 import threading
 
+lastRfid = None
+
+def getLastRfid():
+    global lastRfid
+    temp = lastRfid
+    lastRfid = None
+    return temp
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
          print('Connected successfully')        
@@ -14,15 +22,14 @@ def on_connect(client, userdata, flags, rc):
          print('Bad connection. Code:', rc)
 
 def on_message(client, userdata, msg):
-    # # Print MQTT message to the terminal
-    # print("Received message from topic: {}".format(msg.topic))
-    # print("Payload: {}".format(msg.payload.decode("utf-8")))
-    # print("=============================")
-
     if msg.topic == "server/auth":
         try:
-            print(msg.payload.decode("utf-8"))
-            rfid = Rfid.objects.get(rfid_uid=msg.payload.decode("utf-8"))
+
+            global lastRfid
+            lastRfid = msg.payload.decode("utf-8").upper()
+
+            print(lastRfid)
+            rfid = Rfid.objects.get(rfid_uid=lastRfid)
             user = rfid.user
 
             last_punch = user.punchcard_set.last()

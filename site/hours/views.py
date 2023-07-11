@@ -10,7 +10,7 @@ def is_the_user(user, id):
         door_user = User.objects.get(pk=id)
         if user.is_staff == True:
             return True
-        if user.username != door_user.user_name:
+        if user.first_name != door_user.user_name:
             return False
         else:
             return True

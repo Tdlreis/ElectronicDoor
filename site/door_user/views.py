@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
+from django.contrib.auth import logout
 
 from .models import User, Rfid
 from door_user.forms import UserForm, RfidForm
+from mqtt.mqtt import getLastRfid
 
 def staff_chek(user):
     return user.is_staff
@@ -13,8 +16,12 @@ def staff_chek(user):
 @login_required
 def index(request):
     if not request.user.is_staff:
-        door_user = get_object_or_404(User, user_name=request.user.username)
-        return redirect('hours/'+str(door_user.pk)+'/')
+        try:
+            door_user = User.objects.get(user_name=request.user.first_name)
+            return redirect('hours/'+str(door_user.pk)+'/')
+        except User.DoesNotExist:
+            logout(request)            
+            return redirect('index')
 
     users = User.objects.all()
     user_data = []
@@ -88,6 +95,11 @@ def delete(request, pk):
     db = User.objects.get(pk=pk)
     db.delete()
     return redirect('index')
+
+@login_required
+@user_passes_test(staff_chek, login_url='index')
+def fetchrfid(request):
+    return JsonResponse({'rfid': getLastRfid()})
 
 def handler404(request, exception):
     return render(request, 'errors/404.html', status=404)

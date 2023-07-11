@@ -195,16 +195,46 @@
             if (event) {
                 event.preventDefault()
             }
-            const currentRfidForms = document.getElementsByClassName('rfid-form')
-            const currentFormCount = currentRfidForms.length
+            var currentRfidForms = document.getElementsByClassName('rfid-form')
+            var currentFormCount = currentRfidForms.length
+
             const formCopyTarget = document.getElementById('rfid-form-list')
             const copyEmptyFormEl = document.getElementById('empty-form').cloneNode(true)
+            const lastAddedForm = currentRfidForms[currentFormCount - 1]
+            const inputs = lastAddedForm.getElementsByTagName('input')
+
+            if (inputs[0].value.trim() == '') {
+                lastAddedForm.remove()                
+                currentRfidForms = document.getElementsByClassName('rfid-form')
+                currentFormCount = currentRfidForms.length
+            }
+
             copyEmptyFormEl.setAttribute('class', 'rfid-form')
             copyEmptyFormEl.setAttribute('id', `form-${currentFormCount}`)
             const regex = new RegExp('__prefix__', 'g')
             copyEmptyFormEl.innerHTML = copyEmptyFormEl.innerHTML.replace(regex, currentFormCount)
             totalNewForms.setAttribute('value', currentFormCount + 1)
+
+            fetch('/fetchrfid/')
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                } else {
+                // Request failed
+                console.error('Request failed.')
+                }
+            }).then(data =>{
+                const inputField = copyEmptyFormEl.querySelector('input')
+                inputField.value = data.rfid
+            }).catch(error => {
+                // An error occurred during the request
+                console.error('An error occurred:', error)
+            })
+
+            
             formCopyTarget.append(copyEmptyFormEl)
+
+            
         }
     </script>
 </body>

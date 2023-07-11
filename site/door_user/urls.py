@@ -6,4 +6,5 @@ urlpatterns = [
     path('create/', views.create),
     path('edit/<int:id>/', views.update, name='update'),
     path('delete/<int:pk>/', views.delete, name='delete'),
+    path('fetchrfid/', views.fetchrfid, name='fetchrfid'),
 ]
